@@ -10,5 +10,7 @@ export interface RealtimeCallbacks {
   onAssistantTranscript: (text: string) => void;
   onToolCall: (callId: string, name: string, args: Record<string, unknown>) => Promise<void>;
   onAudioDelta?: (base64Audio: string) => void;
+  /** Mute/unmute mic to prevent self-hearing during assistant speech */
+  onMicMute?: (muted: boolean) => void;
   onError: (message: string) => void;
 }

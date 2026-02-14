@@ -48,6 +48,7 @@ export function createRealtimeEventHandler(
         break;
 
       case "response.created":
+        callbacks.onMicMute?.(true);
         callbacks.onAssistantSpeakingChange(true);
         break;
 
@@ -69,6 +70,7 @@ export function createRealtimeEventHandler(
       }
 
       case "response.done": {
+        callbacks.onMicMute?.(false);
         callbacks.onAssistantSpeakingChange(false);
 
         // Extract assistant transcript from response
@@ -96,6 +98,7 @@ export function createRealtimeEventHandler(
       }
 
       case "response.cancelled":
+        callbacks.onMicMute?.(false);
         callbacks.onAssistantSpeakingChange(false);
         break;
 

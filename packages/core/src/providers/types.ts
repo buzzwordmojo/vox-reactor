@@ -36,5 +36,8 @@ export interface RealtimeProvider {
   /** Register handler for incoming events */
   onEvent(handler: RealtimeEventHandler): void;
 
+  /** Mute/unmute the mic track (prevents self-hearing during TTS playback) */
+  setMicMuted(muted: boolean): void;
+
   readonly isConnected: boolean;
 }

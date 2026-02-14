@@ -185,6 +185,9 @@ export function useRealtimeVoice(
             setIsSpeaking(speaking);
           }
         },
+        onMicMute: (muted) => {
+          activeProviderRef.current?.setMicMuted(muted);
+        },
         onStreamingTranscript: setStreamingTranscript,
         onFinalTranscript: (text) => {
           setFinalTranscript(text);

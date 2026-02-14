@@ -166,4 +166,12 @@ export class OpenAiWebRtcProvider implements RealtimeProvider {
       this.dc.send(JSON.stringify(event));
     }
   }
+
+  setMicMuted(muted: boolean): void {
+    if (this.mediaStream) {
+      for (const track of this.mediaStream.getAudioTracks()) {
+        track.enabled = !muted;
+      }
+    }
+  }
 }
