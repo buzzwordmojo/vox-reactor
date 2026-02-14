@@ -8,6 +8,9 @@ import type {
   RealtimeEventHandler,
 } from "./types";
 
+/** Gain level when "muted" — low enough to suppress echo, high enough for barge-in */
+const ATTENUATED_GAIN = 0.15;
+
 export class OpenAiWebRtcProvider implements RealtimeProvider {
   readonly name = "openai" as const;
 
@@ -15,6 +18,8 @@ export class OpenAiWebRtcProvider implements RealtimeProvider {
   private dc: RTCDataChannel | null = null;
   private audioEl: HTMLAudioElement | null = null;
   private mediaStream: MediaStream | null = null;
+  private audioCtx: AudioContext | null = null;
+  private gainNode: GainNode | null = null;
   private eventHandler: RealtimeEventHandler | null = null;
   private connected = false;
 
@@ -52,7 +57,21 @@ export class OpenAiWebRtcProvider implements RealtimeProvider {
       audioEl.play().catch(() => {});
     };
 
-    stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+    // Route mic through a GainNode so we can attenuate (not mute) during
+    // assistant speech. This suppresses speaker bleed while preserving
+    // barge-in — the server VAD still receives audio, just quieter.
+    const audioCtx = new AudioContext();
+    this.audioCtx = audioCtx;
+    const source = audioCtx.createMediaStreamSource(stream);
+    const gainNode = audioCtx.createGain();
+    this.gainNode = gainNode;
+    const destination = audioCtx.createMediaStreamDestination();
+    source.connect(gainNode);
+    gainNode.connect(destination);
+
+    // Give WebRTC the gain-processed stream instead of the raw mic
+    const processedStream = destination.stream;
+    processedStream.getTracks().forEach((track) => pc.addTrack(track, processedStream));
 
     // Data channel for events
     const dc = pc.createDataChannel("oai-events");
@@ -159,6 +178,11 @@ export class OpenAiWebRtcProvider implements RealtimeProvider {
       this.mediaStream.getTracks().forEach((track) => track.stop());
       this.mediaStream = null;
     }
+    if (this.audioCtx) {
+      this.audioCtx.close().catch(() => {});
+      this.audioCtx = null;
+    }
+    this.gainNode = null;
   }
 
   sendEvent(event: Record<string, unknown>): void {
@@ -168,10 +192,8 @@ export class OpenAiWebRtcProvider implements RealtimeProvider {
   }
 
   setMicMuted(muted: boolean): void {
-    if (this.mediaStream) {
-      for (const track of this.mediaStream.getAudioTracks()) {
-        track.enabled = !muted;
-      }
+    if (this.gainNode) {
+      this.gainNode.gain.value = muted ? ATTENUATED_GAIN : 1.0;
     }
   }
 }

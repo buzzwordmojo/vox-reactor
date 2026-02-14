@@ -10,6 +10,9 @@ import type {
 } from "./types";
 import { float32ToBase64Pcm16 } from "../audio/pcm-codec";
 
+/** Gain level when "muted" — low enough to suppress echo, high enough for barge-in */
+const ATTENUATED_GAIN = 0.15;
+
 export class XaiWebSocketProvider implements RealtimeProvider {
   readonly name = "xai" as const;
 
@@ -17,6 +20,7 @@ export class XaiWebSocketProvider implements RealtimeProvider {
   private audioCtx: AudioContext | null = null;
   private mediaStream: MediaStream | null = null;
   private processor: ScriptProcessorNode | null = null;
+  private gainNode: GainNode | null = null;
   private eventHandler: RealtimeEventHandler | null = null;
   private connected = false;
 
@@ -79,8 +83,10 @@ export class XaiWebSocketProvider implements RealtimeProvider {
           })
         );
 
-        // Start audio capture pipeline
+        // Start audio capture pipeline with gain control for attenuation
         const source = audioCtx.createMediaStreamSource(stream);
+        const gainNode = audioCtx.createGain();
+        this.gainNode = gainNode;
         const processor = audioCtx.createScriptProcessor(4096, 1, 1);
         this.processor = processor;
 
@@ -96,7 +102,8 @@ export class XaiWebSocketProvider implements RealtimeProvider {
           );
         };
 
-        source.connect(processor);
+        source.connect(gainNode);
+        gainNode.connect(processor);
         processor.connect(audioCtx.destination);
 
         this.connected = true;
@@ -126,6 +133,7 @@ export class XaiWebSocketProvider implements RealtimeProvider {
       this.processor.disconnect();
       this.processor = null;
     }
+    this.gainNode = null;
     if (this.ws) {
       this.ws.close();
       this.ws = null;
@@ -147,10 +155,8 @@ export class XaiWebSocketProvider implements RealtimeProvider {
   }
 
   setMicMuted(muted: boolean): void {
-    if (this.mediaStream) {
-      for (const track of this.mediaStream.getAudioTracks()) {
-        track.enabled = !muted;
-      }
+    if (this.gainNode) {
+      this.gainNode.gain.value = muted ? ATTENUATED_GAIN : 1.0;
     }
   }
 }

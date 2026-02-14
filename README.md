@@ -263,9 +263,9 @@ export function VoiceBar() {
 
 Most apps should use **Realtime mode** — it's simpler and handles everything server-side.
 
-### Mic Muting During Playback
+### Mic Attenuation During Playback
 
-The library automatically mutes the mic track while the assistant is speaking. This prevents the assistant's audio from feeding back through the speakers into the mic and triggering false "user is speaking" events. The mic unmutes when the response finishes or is cancelled.
+While the assistant is speaking, the library attenuates the mic to ~15% gain (not a full mute). This suppresses speaker bleed that would otherwise trigger false "user is speaking" events, while still allowing **barge-in** — if the user speaks loudly enough, the server VAD still detects it and interrupts the assistant. Gain returns to 100% when the response finishes or is cancelled.
 
 ### Barge-In
 
