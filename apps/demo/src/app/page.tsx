@@ -1,4 +1,4 @@
-import { VoiceBar } from "./voice-bar";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -43,11 +43,9 @@ export default function Home() {
       </div>
 
       <nav style={{ display: "flex", gap: "16px" }}>
-        <a href="/about">About</a>
-        <a href="/settings">Settings</a>
+        <Link href="/about">About</Link>
+        <Link href="/settings">Settings</Link>
       </nav>
-
-      <VoiceBar />
     </main>
   );
 }

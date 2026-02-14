@@ -77,6 +77,17 @@ const tools = [
       required: ["color"],
     },
   },
+  {
+    type: "function" as const,
+    name: "disconnect",
+    description:
+      'Disconnect the voice assistant and stop listening. Use when the user says "stop listening", "stop chatting", "disconnect", "turn off", "goodbye", "bye", "I\'m done", or similar.',
+    parameters: {
+      type: "object" as const,
+      properties: {},
+      required: [],
+    },
+  },
 ];
 
 const systemInstructions = `You are a friendly voice assistant for the Vox Reactor demo app.
@@ -86,6 +97,9 @@ Available tools:
 - createNote: Create a note with a title and content
 - showToast: Show a notification
 - changeTheme: Change the accent color
+- disconnect: Stop listening / end the voice session
+
+When the user says "stop listening", "stop chatting", "disconnect", "goodbye", "bye", "I'm done", or similar - say a brief goodbye and call the disconnect tool.
 
 Keep responses SHORT and conversational. Confirm actions after completing them.
 Today's date is ${new Date().toLocaleDateString()}.`;

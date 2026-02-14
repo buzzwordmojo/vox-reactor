@@ -55,6 +55,11 @@ export function VoiceBar() {
           toast.success(`Note created: ${title}`);
           return { success: true, message: `Created note: ${title}` };
         }
+        case "disconnect": {
+          // Small delay so the goodbye audio can start playing
+          setTimeout(() => disconnect(), 1500);
+          return { success: true, message: "Disconnecting voice assistant" };
+        }
         default:
           return { success: false, message: `Unknown tool: ${name}` };
       }

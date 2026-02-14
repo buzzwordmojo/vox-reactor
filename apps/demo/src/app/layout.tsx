@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Toaster } from "sonner";
 import { Providers } from "./providers";
+import { VoiceBar } from "./voice-bar";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,6 +19,7 @@ export default function RootLayout({
       <body>
         <Providers>
           {children}
+          <VoiceBar />
           <Toaster position="top-right" theme="dark" />
         </Providers>
       </body>
